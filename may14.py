@@ -2,8 +2,8 @@ from music21 import *
 
 # f = open("chords.txt", "w")
 
-c1 = converter.parse("~/Dropbox/May_14_mvt1.mxl")
-c2 = converter.parse("~/Dropbox/May_14_mvt2.mxl")
+c1 = converter.parse("May_14_mvt1.mxl")
+c2 = converter.parse("May_14_mvt2.mxl")
 # c1.show('text')
 # c1.show()                        # 
 # print(len(c.recurse().getElementsByClass('Note')))
