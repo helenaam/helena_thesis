@@ -6,6 +6,7 @@
 
 from music21 import *
 import os
+import random
 
 save_dir = 'melodies/'
 
@@ -18,24 +19,63 @@ for melody in melodies:
 
 # scores[0].show('text')
 
-notes = [[] for score in scores]
-durations = [[] for score in scores]
-keys = []
+# Transpose everything into C major or C minor
+
+majormelodies = []
+minormelodies = []
+transposed_scores = []
 
 for i, melody in enumerate(scores):
-    # print(str(i))
-    keys.append(str(melody.analyze('key')))
-    for element in melody:
-        if isinstance(element, stream.Part):
-            for measure in element:
-                if isinstance(measure, stream.Measure):
-                    for thing in measure:
-                        # print(element)
-                        if isinstance(thing, note.Note):
-                            notes[i].append(thing.pitch)
-                            durations[i].append(thing.duration.quarterLength)
-                        # In this case, since all the melodies are a single line,
-                        # every note is a Note and not a Chord.
+    key = melody.analyze('key')
+    k = str(key)
+    interv = interval.Interval(key.tonic, pitch.Pitch('C'))
+    transposed = melody.transpose(interv)
+    if "major" in k:
+        majormelodies.append(transposed)
+    if "minor" in k:
+        minormelodies.append(transposed)
+    transposed_scores.append(transposed)
 
-# print(notes)
-# print(durations)
+# print(majormelodies)
+# print(minormelodies)
+
+# Determine whether to generate a major or minor melody.
+
+newkey = ""
+
+frac_major = len(majormelodies) / (len(majormelodies) + len(minormelodies))
+if random.random() < frac_major:
+    newkey = "major"
+else:
+    newkey = "minor"
+
+if newkey is "major":
+    # Make lists of all the notes and their durations in each of the melodies.
+
+    notes = [[] for score in majormelodies]
+    durations = [[] for score in majormelodies]
+
+    for i, melody in enumerate(majormelodies):
+        for element in melody:
+            if isinstance(element, stream.Part):
+                for measure in element:
+                    if isinstance(measure, stream.Measure):
+                        for thing in measure:
+                            if isinstance(thing, note.Note):
+                                notes[i].append(thing.pitch)
+                                durations[i].append(thing.duration.quarterLength)
+elif newkey is "minor":
+    notes = [[] for score in minormelodies]
+    durations = [[] for score in minormelodies]
+
+    for i, melody in enumerate(minormelodies):
+        for element in melody:
+            if isinstance(element, stream.Part):
+                for measure in element:
+                    if isinstance(measure, stream.Measure):
+                        for thing in measure:
+                            if isinstance(thing, note.Note):
+                                notes[i].append(thing.pitch)
+                                durations[i].append(thing.duration.quarterLength)
+
+
