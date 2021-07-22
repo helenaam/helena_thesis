@@ -27,7 +27,7 @@ majormelodies = []
 minormelodies = []
 transposed_scores = []
 
-for i, melody in enumerate(scores):
+for melody in scores:
     key = melody.analyze('key')
     k = str(key)
     interv = interval.Interval(key.tonic, pitch.Pitch('C'))
