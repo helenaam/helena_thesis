@@ -1,6 +1,7 @@
 from music21 import *
 import os
 import random
+from copy import deepcopy
 
 # Create the corpus.  (Ultimately, the corpus might end up being passed in from
 # the main file, so this part may eventually get taken out.)
@@ -42,6 +43,14 @@ def generate1(melody, chordbank):
 def determineResolutions():
     return
 
+def contains(chord, note):
+    pitches = chord.pitches
+    # print(pitches)
+    if note.pitch in pitches:
+        return True
+    else:
+        return False
+
 # The generate2(melody, chordsequence) function assigns a chord to each note based on
 # the probabilities of each chord coming after the previous chord.
 def generate2(melody, key, chordsequence):
@@ -52,41 +61,82 @@ def generate2(melody, key, chordsequence):
     # Setting the initial value of prevchord to something very unlikely, so that the
     # program can use this to determine whether it's on the first note.
     prevchord = chord.Chord(["F7", "B7"])
-    for note in melody.recurse().getElementsByClass('Note'):
+    for n in melody.recurse().getElementsByClass('Note'):
+        print(n.pitch)
+        note4 = deepcopy(n)
+        note4.octave = 4
+        note5 = deepcopy(n)
+        note5.octave = 5
+        print(n.octave)
+        print(note4.octave)
+        print(note5.octave)
         # If it's the first note...
         if prevchord == chord.Chord(["F7", "B7"]):
             # Get chord for first note -- for now, am using tonic chord as placeholder
             # tonic = chord.Chord([0, 4, 7])
-            tonic = chord.Chord(["F4", "A4", "C4"])
+            tonic = chord.Chord(["C4", "F4", "A4"])
             chords.append(tonic)
             prevchord = tonic
         else:
-            next = []
+            nextt = []
             for i, c in enumerate(chordsequence):
                 prevroman = roman.romanNumeralFromChord(prevchord, key)
-                # If the chord matches the previous chord, add the next chord
-                # to the sequence.
                 if roman.romanNumeralFromChord(c, key) == prevroman and i+1 < len(chordsequence):
-                    next.append(chordsequence[i+1])
-            # print(next)
-            for c in next:
-                # If it doesn't contain the note, remove from set of possibilities.
-                note4 = note
-                note4.octave = 4
-                note5 = note
-                note5.octave = 5
-                if note4 not in c.pitches and note5 not in c.pitches:
-                    next.remove(c)
-            print(next)
+                    nextch = chordsequence[i+1]
+                    if note4.pitch in nextch.pitches or note5.pitch in nextch.pitches:
+                        nextt.append(nextch)
+
+
+
+                
+            #     prevroman = roman.romanNumeralFromChord(prevchord, key)
+            #     # print(prevroman)
+            #     # If the chord matches the previous chord, add the next chord
+            #     # to the sequence.
+            #     if roman.romanNumeralFromChord(c, key) == prevroman and i+1 < len(chordsequence):
+            #         nextt.append(chordsequence[i+1])
+            # #print(next)
+            # note4 = note
+            # note4.octave = 4
+            # note5 = note
+            # note5.octave = 5
+            # for j, ch in enumerate(nextt):
+            #     # If it doesn't contain the note, remove from set of possibilities.
+            #     if note4.pitch not in ch.pitches and note5.pitch not in ch.pitches:
+            #         print("removing... {0} does not contain {1}".format(ch, note))
+            #         nextt.pop(j)
+            #     else:
+            #         print("{0} contains {1}".format(ch, note))
+            # print(note)
+            # print(nextt)
+
+            
             # Choose a random chord from next
-            nextchord = next[random.randint(0, len(next)-1)]
+            #print(len(nextt))
+            #print(nextt)
+            if len(nextt) == 0:
+                # print(note4.pitch)
+                # print(note4.octave)
+                # print(note.octave)
+                # choose a random chord containing the note to be nextchord.
+                for c in chordsequence:
+                    #print("checking chord {0}".format(c))
+                    if note4.pitch in c.pitches or note5.pitch in c.pitches:
+                        #print("success!")
+                        nextt.append(c)                
+                # Alternatively: leave that note without a matching chord
+                # nextchord = chord.Chord([note.pitch])
+            # else:
+            #     print("chord found")
+                
+            nextchord = nextt[random.randint(0, len(nextt)-1)]
             chords.append(nextchord)
             prevchord = nextchord
 
     print(chords)
 
-    for note in melody.recurse().getElementsByClass('Note'):
-        print(note)
+    # for note in melody.recurse().getElementsByClass('Note'):
+    #     print(note)
     
 # The "melody" input is a music21.stream.Score object.
 # The "key" input is a music21.key.Key object.
@@ -140,10 +190,16 @@ def generateChords(melody, key):
     # print(roman_numerals)
     # for chord in unique_chords:
     #     print(chord)
+    # print(chord_sequence)
 
     generate2(melody, key, chord_sequence)
 
 # Create a melody to test the generateChords function
 melody = converter.parse('melodies/melody1.mxl')
 # print(melody.analyze('key'))
+
 generateChords(melody, melody.analyze('key'))
+
+# c1 = chord.Chord(["C4", "F4", "A4"])
+# n1 = note.Note("A3")
+# print(contains(c1, n1))
