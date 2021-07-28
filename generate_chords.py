@@ -74,7 +74,7 @@ def generate2(melody, key, chordsequence):
         if prevchord == chord.Chord(["F7", "B7"]):
             # Get chord for first note -- for now, am using tonic chord as placeholder
             # tonic = chord.Chord([0, 4, 7])
-            tonic = chord.Chord(["C4", "F4", "A4"])
+            tonic = chord.Chord(["F4", "A4", "C5"])
             chords.append(tonic)
             prevchord = tonic
         else:
@@ -110,8 +110,29 @@ def generate2(melody, key, chordsequence):
 
     return chords
 
-    # for note in melody.recurse().getElementsByClass('Note'):
-    #     print(note)
+# lower_than(pitch1, pitch2) returns True if pitch1 is lower than pitch2 and
+# false otherwise.
+def lower_than(pitch1, pitch2):
+    # if pitch1.octave < pitch2.octave:
+    #     return True
+    # elif pitch1.octave > pitch2.octave:
+    #     return False
+    # else:
+    #     if
+    testchord = chord.Chord([pitch1, pitch2])
+    if testchord.bass() == pitch1 and pitch1 != pitch2:
+        return True
+    else:
+        return False
+
+# higher_than(pitch1, pitch2) returns True if pitch1 is higher than pitch2 and
+# false otherwise.
+def higher_than(pitch1, pitch2):
+    testchord = chord.Chord([pitch1, pitch2])
+    if testchord.bass() == pitch2 and pitch1 != pitch2:
+        return True
+    else:
+        return False
     
 # The "melody" input is a music21.stream.Score object.
 # The "key" input is a music21.key.Key object.
@@ -176,29 +197,25 @@ def generateChords(melody, key):
     with_chords = melody.chordify()
     # melody.show('text')
     for i, n in enumerate(with_chords.recurse().getElementsByClass('Chord')):
-        #n = chord.Chord([n.pitch])
-        for pitch in new_chords[i]:
-            n.add(pitch)
-            #print("adding pitch")
-        # print(n)
-        #melody_chords.append(n)
+        melody_note = n.pitches[0]
+        lowest_note = new_chords[i].bass()
+        for pitch in new_chords[i].pitches:
+            # If pitch is higher than melody, move it (and the lowest note of
+            # the chord if necessary) down 1 octave, and then add it.
+            if higher_than(pitch, melody_note):
+                pitch.octave -= 1
+                if lower_than(pitch, lowest_note):
+                    # print(new_chords[i])
+                    # print(lowest_note)
+                    lowest_note.octave -= 1
+                    # n.add(lowest_note)
+                n.add(pitch)
+            # If pitch is lower than melody, add it.
+            elif lower_than(pitch, melody_note):
+                n.add(pitch)
+            # If pitch is the same as melody, don't need to add it.
 
     with_chords.show()
-
-    # Build new score using these chords
-    # newscore = stream.Score()
-    # print(newscore)
-    # print(melody)
-    # # newscore.show('text')
-    # i = 0
-    # for x in melody.recurse():
-    #     if x in melody.recurse().notes:
-    #         newscore.show('text')
-    #         #newscore.append(melody_chords[i])
-    #     else:
-    #         newscore.append(x)
-
-    #newscore.show('text')
     
 
 # Create a melody to test the generateChords function
@@ -210,3 +227,14 @@ generateChords(melody, melody.analyze('key'))
 # c1 = chord.Chord(["C4", "F4", "A4"])
 # n1 = note.Note("A3")
 # print(contains(c1, n1))
+# c2 = chord.Chord(["A4", "F4"])
+# print(c2.bass())
+# A4 = pitch.Pitch("A4")
+# B4 = pitch.Pitch("B4")
+# E4 = pitch.Pitch("E4")
+# print(higher_than(A4, A4))
+# print(higher_than(B4, A4))
+# print(higher_than(E4, A4))
+# print(lower_than(A4, A4))
+# print(lower_than(B4, A4))
+# print(lower_than(E4, A4))
