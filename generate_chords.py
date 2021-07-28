@@ -12,24 +12,24 @@ chords = os.listdir(save_dir)
 scores = []
 
 for piece in chords:
-    score = converter.parse(save_dir + piece)
+    s = converter.parse(save_dir + piece)
     # These next few lines are specific to the input pieces I was using to test
     # this program, since music21 was misidentifying the keys of these pieces.
     if "eminor" in piece:
-        score.keySignature = key.Key('E', 'minor')
+        s.keySignature = key.Key('E', 'minor')
     elif "aminor" in piece:
-        score.keySignature = key.Key('A', 'minor')
+        s.keySignature = key.Key('A', 'minor')
     elif "cminor" in piece:
-        score.keySignature = key.Key('C', 'minor')
+        s.keySignature = key.Key('C', 'minor')
     elif "fmajor" in piece:
-        score.keySignature = key.Key('F', 'major')
+        s.keySignature = key.Key('F', 'major')
     elif "bflatmajor" in piece:
-        score.keySignature = key.Key('B-', 'major')
+        s.keySignature = key.Key('B-', 'major')
     elif "dminor" in piece:
-        score.keySignature = key.Key('D', 'minor')
+        s.keySignature = key.Key('D', 'minor')
     elif "cmajor" in piece:
-        score.keySignature = key.Key('C', 'major')
-    scores.append(score)
+        s.keySignature = key.Key('C', 'major')
+    scores.append(s)
 
 # The generate1(melody, unique_chords) function assigns a chord to each note
 # by randomly selecting a chord containing that note from the chord bank.
@@ -62,14 +62,14 @@ def generate2(melody, key, chordsequence):
     # program can use this to determine whether it's on the first note.
     prevchord = chord.Chord(["F7", "B7"])
     for n in melody.recurse().getElementsByClass('Note'):
-        print(n.pitch)
+        # print(n.pitch)
         note4 = deepcopy(n)
         note4.octave = 4
         note5 = deepcopy(n)
         note5.octave = 5
-        print(n.octave)
-        print(note4.octave)
-        print(note5.octave)
+        # print(n.octave)
+        # print(note4.octave)
+        # print(note5.octave)
         # If it's the first note...
         if prevchord == chord.Chord(["F7", "B7"]):
             # Get chord for first note -- for now, am using tonic chord as placeholder
@@ -85,31 +85,6 @@ def generate2(melody, key, chordsequence):
                     nextch = chordsequence[i+1]
                     if note4.pitch in nextch.pitches or note5.pitch in nextch.pitches:
                         nextt.append(nextch)
-
-
-
-                
-            #     prevroman = roman.romanNumeralFromChord(prevchord, key)
-            #     # print(prevroman)
-            #     # If the chord matches the previous chord, add the next chord
-            #     # to the sequence.
-            #     if roman.romanNumeralFromChord(c, key) == prevroman and i+1 < len(chordsequence):
-            #         nextt.append(chordsequence[i+1])
-            # #print(next)
-            # note4 = note
-            # note4.octave = 4
-            # note5 = note
-            # note5.octave = 5
-            # for j, ch in enumerate(nextt):
-            #     # If it doesn't contain the note, remove from set of possibilities.
-            #     if note4.pitch not in ch.pitches and note5.pitch not in ch.pitches:
-            #         print("removing... {0} does not contain {1}".format(ch, note))
-            #         nextt.pop(j)
-            #     else:
-            #         print("{0} contains {1}".format(ch, note))
-            # print(note)
-            # print(nextt)
-
             
             # Choose a random chord from next
             #print(len(nextt))
@@ -133,7 +108,7 @@ def generate2(melody, key, chordsequence):
             chords.append(nextchord)
             prevchord = nextchord
 
-    print(chords)
+    return chords
 
     # for note in melody.recurse().getElementsByClass('Note'):
     #     print(note)
@@ -162,6 +137,7 @@ def generateChords(melody, key):
             interv = interval.Interval(start_key.tonic, key.tonic)
             transposed = piece.transpose(interv)
             piece_chords = transposed.chordify()
+            #piece_chords.show('text')
             transposed_scores.append(piece_chords)
             
     # Get a list of all the unique chords in the works that share a mode
@@ -192,7 +168,38 @@ def generateChords(melody, key):
     #     print(chord)
     # print(chord_sequence)
 
-    generate2(melody, key, chord_sequence)
+    new_chords = generate2(melody, key, chord_sequence)
+
+    # Add the chords into the melody
+    #melody_chords = []
+    #melody_notes = melody.recurse().notes
+    with_chords = melody.chordify()
+    # melody.show('text')
+    for i, n in enumerate(with_chords.recurse().getElementsByClass('Chord')):
+        #n = chord.Chord([n.pitch])
+        for pitch in new_chords[i]:
+            n.add(pitch)
+            #print("adding pitch")
+        # print(n)
+        #melody_chords.append(n)
+
+    with_chords.show()
+
+    # Build new score using these chords
+    # newscore = stream.Score()
+    # print(newscore)
+    # print(melody)
+    # # newscore.show('text')
+    # i = 0
+    # for x in melody.recurse():
+    #     if x in melody.recurse().notes:
+    #         newscore.show('text')
+    #         #newscore.append(melody_chords[i])
+    #     else:
+    #         newscore.append(x)
+
+    #newscore.show('text')
+    
 
 # Create a melody to test the generateChords function
 melody = converter.parse('melodies/melody1.mxl')
