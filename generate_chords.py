@@ -74,7 +74,9 @@ def generate2(melody, key, chordsequence):
         if prevchord == chord.Chord(["F7", "B7"]):
             # Get chord for first note -- for now, am using tonic chord as placeholder
             # tonic = chord.Chord([0, 4, 7])
-            tonic = chord.Chord(["F4", "A4", "C5"])
+            tonic_note = key.tonic
+            tonic_note.octave = 4
+            tonic = chord.Chord([tonic_note, key.pitchFromDegree(3), key.pitchFromDegree(5)])
             chords.append(tonic)
             prevchord = tonic
         else:
@@ -209,10 +211,12 @@ def generateChords(melody, key):
                     # print(lowest_note)
                     lowest_note.octave -= 1
                     # n.add(lowest_note)
-                n.add(pitch)
+                # n.add(pitch)
             # If pitch is lower than melody, add it.
-            elif lower_than(pitch, melody_note):
+            if lower_than(pitch, melody_note):
                 n.add(pitch)
+                if lowest_note not in n.pitches and lowest_note != melody_note:
+                    n.add(lowest_note)
             # If pitch is the same as melody, don't need to add it.
 
     with_chords.show()
