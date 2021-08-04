@@ -53,6 +53,7 @@ def contains(chord, note):
 
 # The generate2(melody, chordsequence) function assigns a chord to each note based on
 # the probabilities of each chord coming after the previous chord.
+# In this reversed version, the "chordsequence" input has already been reversed.
 def generate2(melody, key, chordsequence):
     chords = []
     
@@ -191,11 +192,15 @@ def generateChords(melody, key):
     #     print(chord)
     # print(chord_sequence)
 
+    #chordseq_reversed = reversed(chord_sequence)
+    chord_sequence.reverse()
     new_chords = generate2(melody, key, chord_sequence)
 
     # Add the chords into the melody
     #melody_chords = []
     #melody_notes = melody.recurse().notes
+    # newchords_forward = reversed(new_chords)
+    new_chords.reverse()
     with_chords = melody.chordify()
     # melody.show('text')
     for i, n in enumerate(with_chords.recurse().getElementsByClass('Chord')):
@@ -223,7 +228,7 @@ def generateChords(melody, key):
     
 
 # Create a melody to test the generateChords function
-melody = converter.parse('melodies/melody2.mxl')
+melody = converter.parse('melodies/melody1.mxl')
 # print(melody.analyze('key'))
 
 generateChords(melody, melody.analyze('key'))
