@@ -61,7 +61,7 @@ def generate2(melody, key, chordsequence):
     # Setting the initial value of prevchord to something very unlikely, so that the
     # program can use this to determine whether it's on the first note.
     prevchord = chord.Chord(["F7", "B7"])
-    for n in melody.recurse().getElementsByClass('Note'):
+    for i, n in enumerate(melody.recurse().getElementsByClass('Note')):
         # print(n.pitch)
         note4 = deepcopy(n)
         note4.octave = 4
@@ -71,7 +71,7 @@ def generate2(melody, key, chordsequence):
         # print(note4.octave)
         # print(note5.octave)
         # If it's the first note...
-        if prevchord == chord.Chord(["F7", "B7"]):
+        if i == 0:
             # Get chord for first note -- for now, am using tonic chord as placeholder
             # tonic = chord.Chord([0, 4, 7])
             tonic_note = key.tonic

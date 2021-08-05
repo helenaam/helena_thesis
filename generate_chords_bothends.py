@@ -56,13 +56,35 @@ def contains(chord, note):
 # In this reversed version, the "chordsequence" input has already been reversed.
 def generate2(melody, key, chordsequence):
     chords = []
+
+    # Get number of notes in the melody
+    length = 0
+    for i, n in enumerate(melody.recurse().getElementsByClass('Note')):
+        length += 1
+
+    # Chop melody in half (melody1 and melody2 are first and second half)
+    melody1 = []
+    melody2 = []
+    for i, n in enumerate(melody.recurse().getElementsByClass('Note')):
+        if i < length/2:
+            melody1.append(n)
+        else:
+            melody2.append(n)
+
+    # Get chords for first half (use normal procedure from generate_chords.py)
+
+    # Get chords for second half (use procedure from generate_chords_reverse.py)
+
+    # Reverse chords for second half
+
+    # Append chords for second half to chords for first half
     
     # Choose chord for first note (if not pickup note, use tonic chord if it fits)
 
     # Setting the initial value of prevchord to something very unlikely, so that the
     # program can use this to determine whether it's on the first note.
     prevchord = chord.Chord(["F7", "B7"])
-    for i, n in enumerate(melody.recurse().getElementsByClass('Note')):
+    for n in melody.recurse().getElementsByClass('Note'):
         # print(n.pitch)
         note4 = deepcopy(n)
         note4.octave = 4
@@ -72,7 +94,7 @@ def generate2(melody, key, chordsequence):
         # print(note4.octave)
         # print(note5.octave)
         # If it's the first note...
-        if i == 0:
+        if prevchord == chord.Chord(["F7", "B7"]):
             # Get chord for first note -- for now, am using tonic chord as placeholder
             # tonic = chord.Chord([0, 4, 7])
             tonic_note = key.tonic
