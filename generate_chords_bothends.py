@@ -55,7 +55,8 @@ def contains(chord, note):
 # the probabilities of each chord coming after the previous chord.
 # In this reversed version, the "chordsequence" input has already been reversed.
 def generate2(melody, key, chordsequence):
-    chords = []
+    chords1 = []
+    chords2 = []
 
     # Get number of notes in the melody
     length = 0
@@ -73,34 +74,20 @@ def generate2(melody, key, chordsequence):
 
     # Get chords for first half (use normal procedure from generate_chords.py)
 
-    # Get chords for second half (use procedure from generate_chords_reverse.py)
-
-    # Reverse chords for second half
-
-    # Append chords for second half to chords for first half
-    
-    # Choose chord for first note (if not pickup note, use tonic chord if it fits)
-
-    # Setting the initial value of prevchord to something very unlikely, so that the
-    # program can use this to determine whether it's on the first note.
+    # Setting the initial value of prevchord to something random/meaningless
     prevchord = chord.Chord(["F7", "B7"])
-    for n in melody.recurse().getElementsByClass('Note'):
-        # print(n.pitch)
+    for i, n in enumerate(melody1):
         note4 = deepcopy(n)
         note4.octave = 4
         note5 = deepcopy(n)
         note5.octave = 5
-        # print(n.octave)
-        # print(note4.octave)
-        # print(note5.octave)
         # If it's the first note...
-        if prevchord == chord.Chord(["F7", "B7"]):
+        if i == 0:
             # Get chord for first note -- for now, am using tonic chord as placeholder
-            # tonic = chord.Chord([0, 4, 7])
             tonic_note = key.tonic
             tonic_note.octave = 4
             tonic = chord.Chord([tonic_note, key.pitchFromDegree(3), key.pitchFromDegree(5)])
-            chords.append(tonic)
+            chords1.append(tonic)
             prevchord = tonic
         else:
             nextt = []
@@ -112,28 +99,65 @@ def generate2(melody, key, chordsequence):
                         nextt.append(nextch)
             
             # Choose a random chord from next
-            #print(len(nextt))
-            #print(nextt)
             if len(nextt) == 0:
-                # print(note4.pitch)
-                # print(note4.octave)
-                # print(note.octave)
                 # choose a random chord containing the note to be nextchord.
                 for c in chordsequence:
-                    #print("checking chord {0}".format(c))
                     if note4.pitch in c.pitches or note5.pitch in c.pitches:
-                        #print("success!")
-                        nextt.append(c)                
-                # Alternatively: leave that note without a matching chord
-                # nextchord = chord.Chord([note.pitch])
-            # else:
-            #     print("chord found")
+                        nextt.append(c)
                 
             nextchord = nextt[random.randint(0, len(nextt)-1)]
-            chords.append(nextchord)
+            chords1.append(nextchord)
             prevchord = nextchord
 
-    return chords
+    # Reverse second half of melody
+    melody2.reverse()
+            
+    # Get chords for second half (use procedure from generate_chords_reverse.py)
+
+    chordsequence.reverse()
+    # Setting the initial value of prevchord to something random/meaningless
+    prevchord = chord.Chord(["F7", "B7"])
+    for i, n in enumerate(melody2):
+        note4 = deepcopy(n)
+        note4.octave = 4
+        note5 = deepcopy(n)
+        note5.octave = 5
+        # If it's the first note...
+        if i == 0:
+            # Get chord for last note -- for now, am using tonic chord as placeholder
+            tonic_note = key.tonic
+            tonic_note.octave = 4
+            tonic = chord.Chord([tonic_note, key.pitchFromDegree(3), key.pitchFromDegree(5)])
+            chords2.append(tonic)
+            prevchord = tonic
+        else:
+            nextt = []
+            for i, c in enumerate(chordsequence):
+                prevroman = roman.romanNumeralFromChord(prevchord, key)
+                if roman.romanNumeralFromChord(c, key) == prevroman and i+1 < len(chordsequence):
+                    nextch = chordsequence[i+1]
+                    if note4.pitch in nextch.pitches or note5.pitch in nextch.pitches:
+                        nextt.append(nextch)
+            
+            # Choose a random chord from next
+            if len(nextt) == 0:
+                # choose a random chord containing the note to be nextchord.
+                for c in chordsequence:
+                    if note4.pitch in c.pitches or note5.pitch in c.pitches:
+                        nextt.append(c)
+                
+            nextchord = nextt[random.randint(0, len(nextt)-1)]
+            chords2.append(nextchord)
+            prevchord = nextchord
+
+    # Reverse chords for second half
+    chords2.reverse()
+
+    # Append chords for second half to chords for first half
+    for c in chords2:
+        chords1.append(c)
+
+    return chords1
 
 # lower_than(pitch1, pitch2) returns True if pitch1 is lower than pitch2 and
 # false otherwise.
@@ -208,21 +232,9 @@ def generateChords(melody, key):
                 roman_numerals.append(rn)
                 unique_chords.append(c)
 
-    # print(unique_chords)
-    # print(roman_numerals)
-    # for chord in unique_chords:
-    #     print(chord)
-    # print(chord_sequence)
-
-    #chordseq_reversed = reversed(chord_sequence)
-    chord_sequence.reverse()
     new_chords = generate2(melody, key, chord_sequence)
 
     # Add the chords into the melody
-    #melody_chords = []
-    #melody_notes = melody.recurse().notes
-    # newchords_forward = reversed(new_chords)
-    new_chords.reverse()
     with_chords = melody.chordify()
     # melody.show('text')
     for i, n in enumerate(with_chords.recurse().getElementsByClass('Chord')):
