@@ -39,25 +39,30 @@ def variation4(melody):
 # This function makes every note twice as long (aka slows it down).
 # I'm passing in the time signature as an input because music21 doesn't
 # recognize that it already has a time signature (even though there is
-# already a time signature object in the music21 representation of the melody)
+# already a time signature object in the music21 representation of the
+# melody).
+# The score displayed by this function does not include a key signature, but
+# the notes are still stored correctly (it's just the score that shows up
+# wrong).
 def variation5(melody, timeSig):
-    chords = melody.chordify()
+    # chords = melody.chordify()
     new_melody = stream.Stream()
-    #melody.timeSignature = None
-    #new_melody.insert(0, meter.TimeSignature('{0}/{1}'.format(timeSig.numerator * 2, timeSig.denominator)))
     new_melody.timeSignature = meter.TimeSignature('{0}/{1}'.format(timeSig.numerator * 2, timeSig.denominator))
     for n in melody.recurse().getElementsByClass('GeneralNote'):
         old_duration = n.quarterLength
         n.quarterLength = old_duration * 2
         new_melody.append(n)
-    #melody.timeSignature = timeSig
-    #print(melody.timeSignature)
-    #melody.measure(1).timeSignature = meter.TimeSignature('{0}/{1}'.format(timeSig.numerator * 2, timeSig.denominator))
     new_melody.show()
 
 # This function reduces the length of every note by half (speeds it up).
-def variation6(melody):
-    ...
+def variation6(melody, timeSig):
+    new_melody = stream.Stream()
+    new_melody.timeSignature = timeSig
+    for n in melody.recurse().getElementsByClass('GeneralNote'):
+        old_duration = n.quarterLength
+        n.quarterLength = old_duration / 2
+        new_melody.append(n)
+    new_melody.show()
 
 # This variation replaces each note e.g. C --> C B C D in the key of C major,
 # if the value of the note is a quarter note or greater
@@ -69,4 +74,5 @@ melody5 = converter.parse('melodies/melody5.mxl')
 
 #variation2(melody1, key.Key('F', 'major'))
 #variation5(melody1, meter.TimeSignature('4/4'))
-variation5(melody5, meter.TimeSignature('2/4'))
+#variation5(melody5, meter.TimeSignature('2/4'))
+variation6(melody5, meter.TimeSignature('2/4'))
