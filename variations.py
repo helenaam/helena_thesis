@@ -28,16 +28,12 @@ def variation2(melody, key):
 # note followed by an eigth note, and two consecutive eighth notes to a
 # dotted eighth note followed by a 16th note.
 def variation3(melody):
-    #last_2_notes = (None, None)
     prev_note = None
     old_prev = None
     for curr_note in melody.recurse().getElementsByClass('GeneralNote'):
-        #last_2_notes[0] = last_2_notes[1]
-        #last_2_notes[1] = note
         old_curr = deepcopy(curr_note)
         if isinstance(prev_note, note.Note) or isinstance(prev_note, chord.Chord):
             if isinstance(curr_note, note.Note) or isinstance(curr_note, chord.Chord):
-                #print("2 notes in a row")
                 # If the previous note has not already been modified
                 if old_prev.quarterLength == prev_note.quarterLength:
                     # If the previous note and current note are same length
@@ -72,6 +68,7 @@ def variation5(melody, timeSig):
         new_melody.append(n)
     new_melody.show()
 
+    
 # This function reduces the length of every note by half (speeds it up).
 def variation6(melody, timeSig):
     new_melody = stream.Stream()
@@ -81,11 +78,57 @@ def variation6(melody, timeSig):
         n.quarterLength = old_duration / 2
         new_melody.append(n)
     new_melody.show()
+    
 
+# higher_than(pitch1, pitch2) returns True if pitch1 is higher than pitch2 and
+# false otherwise.
+def higher_than(pitch1, pitch2):
+    testchord = chord.Chord([pitch1, pitch2])
+    if testchord.bass() == pitch2 and pitch1 != pitch2:
+        return True
+    else:
+        return False
+
+    
+# lower_than(pitch1, pitch2) returns True if pitch1 is lower than pitch2 and
+# false otherwise.
+def lower_than(pitch1, pitch2):
+    testchord = chord.Chord([pitch1, pitch2])
+    if testchord.bass() == pitch1 and pitch1 != pitch2:
+        return True
+    else:
+        return False
+
+    
 # This variation replaces each note e.g. C --> C B C D in the key of C major,
 # if the value of the note is a quarter note or greater
 def variation7(melody, key):
-    ...
+    new_melody = stream.Stream()
+    for n in melody.recurse().getElementsByClass('GeneralNote'):
+        if isinstance(n, note.Note):
+            orig_len = n.quarterLength
+            degree = key.getScaleDegreeAndAccidentalFromPitch(n.pitch)[0]
+            n1 = note.Note(n.pitch)
+            n2 = note.Note(key.pitchFromDegree(degree - 1))
+            n2.octave = n1.octave
+            n3 = note.Note(n.pitch)
+            n4 = note.Note(key.pitchFromDegree(degree + 1))
+            n4.octave = n1.octave
+            if lower_than(n4.pitch, n1.pitch):
+                n4.octave += 1
+            if higher_than(n2.pitch, n1.pitch):
+                n2.octave -= 1
+            n1.quarterLength = orig_len / 4
+            n2.quarterLength = orig_len / 4
+            n3.quarterLength = orig_len / 4
+            n4.quarterLength = orig_len / 4
+            new_melody.append(n1)
+            new_melody.append(n2)
+            new_melody.append(n3)
+            new_melody.append(n4)
+        else:
+            new_melody.append(n)
+    new_melody.show()
 
 melody1 = converter.parse('melodies/melody1.mxl')
 melody5 = converter.parse('melodies/melody5.mxl')
@@ -95,6 +138,8 @@ melody2 = converter.parse('melodies/melody2.mxl')
 #variation5(melody1, meter.TimeSignature('4/4'))
 #variation5(melody5, meter.TimeSignature('2/4'))
 #variation6(melody5, meter.TimeSignature('2/4'))
-variation3(melody2)
+#variation3(melody2)
 #variation3(melody1)
 #variation3(melody5)
+#variation7(melody2, key.Key('F', 'major'))
+variation7(melody5, key.Key('C', 'minor'))
