@@ -1,4 +1,5 @@
 from music21 import *
+from copy import deepcopy
 
 # This function adds intermediate pitches on transitions between notes.
 # The input "melody" is a music21.stream.Score object.
@@ -26,9 +27,26 @@ def variation2(melody, key):
 # This function changes two consecutive quarter notes to a dotted quarter
 # note followed by an eigth note, and two consecutive eighth notes to a
 # dotted eighth note followed by a 16th note.
-def variation3(melody, timesig):
-    for note in melody.recurse().getElementsByClass('Note'):
-        note_value = 1
+def variation3(melody):
+    #last_2_notes = (None, None)
+    prev_note = None
+    old_prev = None
+    for curr_note in melody.recurse().getElementsByClass('GeneralNote'):
+        #last_2_notes[0] = last_2_notes[1]
+        #last_2_notes[1] = note
+        old_curr = deepcopy(curr_note)
+        if isinstance(prev_note, note.Note) or isinstance(prev_note, chord.Chord):
+            if isinstance(curr_note, note.Note) or isinstance(curr_note, chord.Chord):
+                #print("2 notes in a row")
+                # If the previous note has not already been modified
+                if old_prev.quarterLength == prev_note.quarterLength:
+                    # If the previous note and current note are same length
+                    if old_prev.quarterLength == curr_note.quarterLength:
+                        prev_note.quarterLength *= 1.5
+                        curr_note.quarterLength /= 2
+        old_prev = old_curr
+        prev_note = curr_note
+    melody.show()
     return
 
 # This function changes a melody in simple time to be in composite time, and
@@ -71,8 +89,12 @@ def variation7(melody, key):
 
 melody1 = converter.parse('melodies/melody1.mxl')
 melody5 = converter.parse('melodies/melody5.mxl')
+melody2 = converter.parse('melodies/melody2.mxl')
 
 #variation2(melody1, key.Key('F', 'major'))
 #variation5(melody1, meter.TimeSignature('4/4'))
 #variation5(melody5, meter.TimeSignature('2/4'))
-variation6(melody5, meter.TimeSignature('2/4'))
+#variation6(melody5, meter.TimeSignature('2/4'))
+variation3(melody2)
+#variation3(melody1)
+#variation3(melody5)
