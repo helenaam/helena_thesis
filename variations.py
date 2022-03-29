@@ -1,10 +1,67 @@
 from music21 import *
 from copy import deepcopy
+import random
 
 # This function adds intermediate pitches on transitions between notes.
 # The input "melody" is a music21.stream.Score object.
-def variation1(melody):
+def variation0(melody):
     ...
+
+# For each note, divide into 4 notes.  Keep the first one the same pitch as
+# the original note, and, for each of the other 3 notes, choose randomly
+# between pitches in between that of the original note and the (original)
+# next note and a rest.
+def variation1(melody, key):
+    new_melody = stream.Stream()
+    for i, n in enumerate(melody.recurse().getElementsByClass('GeneralNote')):
+        if i < len(melody.recurse().getElementsByClass('GeneralNote')) - 1:
+            next_obj = melody.recurse().getElementsByClass('GeneralNote')[i+1]
+            j = i+1
+            while j < len(melody.recurse().getElementsByClass('GeneralNote')) - 1 and not isinstance(next_obj, note.Note):
+                j += 1
+                next_obj = melody.recurse().getElementsByClass('GeneralNote')[j]
+            if isinstance(n, note.Note) and isinstance(next_obj, note.Note):
+                orig_len = n.quarterLength
+                num_halfsteps = interval.Interval(n, next_obj).semitones
+                n1 = note.Note(n.pitch)
+
+                if num_halfsteps != 0:
+                    n2_steps = random.randrange(abs(num_halfsteps))
+                    n2_interval = interval.Interval(n2_steps)
+                    n2_interval.noteStart = n
+                    n2 = n2_interval.noteEnd
+                    n3_steps = random.randrange(abs(num_halfsteps))
+                    n3_interval = interval.Interval(n3_steps)
+                    n3_interval.noteStart = n
+                    n3 = n3_interval.noteEnd
+                    n4_steps = random.randrange(abs(num_halfsteps))
+                    n4_interval = interval.Interval(n4_steps)
+                    n4_interval.noteStart = n
+                    n4 = n4_interval.noteEnd
+
+                else:
+                    degree = key.getScaleDegreeAndAccidentalFromPitch(n.pitch)[0]
+                    n2 = note.Note(key.pitchFromDegree(degree - 1))
+                    n2.octave = n1.octave
+                    n3 = note.Note(n.pitch)
+                    n4 = note.Note(key.pitchFromDegree(degree + 1))
+                    n4.octave = n1.octave
+                    if lower_than(n4.pitch, n1.pitch):
+                        n4.octave += 1
+                    if higher_than(n2.pitch, n1.pitch):
+                        n2.octave -= 1
+
+                n1.quarterLength = orig_len / 4
+                n2.quarterLength = orig_len / 4
+                n3.quarterLength = orig_len / 4
+                n4.quarterLength = orig_len / 4
+                new_melody.append(n1)
+                new_melody.append(n2)
+                new_melody.append(n3)
+                new_melody.append(n4)
+            else:
+                new_melody.append(n)
+    new_melody.show()
 
 # This function changes the music from major to minor, or vice versa.
 def variation2(melody, key):
@@ -130,9 +187,86 @@ def variation7(melody, key):
             new_melody.append(n)
     new_melody.show()
 
+# Variation 8
+def variation8(melody, key):
+    new_melody = stream.Stream()
+    for i, n in enumerate(melody.recurse().getElementsByClass('GeneralNote')):
+        if i < len(melody.recurse().getElementsByClass('GeneralNote')) - 1:
+            next_obj = melody.recurse().getElementsByClass('GeneralNote')[i+1]
+            j = i+1
+            while j < len(melody.recurse().getElementsByClass('GeneralNote')) - 1 and not isinstance(next_obj, note.Note):
+                j += 1
+                next_obj = melody.recurse().getElementsByClass('GeneralNote')[j]
+            if isinstance(n, note.Note) and isinstance(next_obj, note.Note):
+                orig_len = n.quarterLength
+                num_halfsteps = interval.Interval(n, next_obj).semitones
+                n1 = note.Note(n.pitch)
+
+                if num_halfsteps <= -3 or num_halfsteps >= 3:
+                    n2_steps = round(num_halfsteps / 3)
+                    n2_interval = interval.Interval(n2_steps)
+                    n2_interval.noteStart = n
+                    n2 = n2_interval.noteEnd
+                    n3_steps = 2 * n2_steps
+                    n3_interval = interval.Interval(n3_steps)
+                    n3_interval.noteStart = n
+                    n3 = n3_interval.noteEnd
+                    
+                    n1.quarterLength = orig_len / 2
+                    n2.quarterLength = orig_len / 4
+                    n3.quarterLength = orig_len / 4
+                    new_melody.append(n1)
+                    new_melody.append(n2)
+                    new_melody.append(n3)
+
+                elif num_halfsteps == 0:
+                    degree = key.getScaleDegreeAndAccidentalFromPitch(n.pitch)[0]
+                    n2 = note.Note(key.pitchFromDegree(degree - 1))
+                    n2.octave = n1.octave
+                    n3 = note.Note(key.pitchFromDegree(degree + 1))
+                    n3.octave = n1.octave
+                    if lower_than(n3.pitch, n1.pitch):
+                        n3.octave += 1
+                    if higher_than(n2.pitch, n1.pitch):
+                        n2.octave -= 1
+
+                    n1.quarterLength = orig_len / 4
+                    n2.quarterLength = orig_len / 4
+                    n3.quarterLength = orig_len / 2
+                    new_melody.append(n1)
+                    new_melody.append(n2)
+                    new_melody.append(n3)
+
+                elif num_halfsteps == -1 or num_halfsteps == 1:
+                    n2_interval = interval.Interval(2)
+                    n2_interval.noteStart = n
+                    n2 = n2_interval.noteEnd
+
+                    n1.quarterLength = orig_len / 2
+                    n2.quarterLength = orig_len / 2
+                    new_melody.append(n1)
+                    new_melody.append(n2)
+
+                else: # number of half steps is +/- 2
+                    n2_interval = interval.Interval(1)
+                    n2_interval.noteStart = n
+                    n2 = n2_interval.noteEnd
+
+                    n1.quarterLength = 3 * orig_len / 4
+                    n2.quarterLength = orig_len / 4
+                    new_melody.append(n1)
+                    new_melody.append(n2)
+                    
+            else:
+                new_melody.append(n)
+    new_melody.show()
+
+
 melody1 = converter.parse('melodies/melody1.mxl')
 melody5 = converter.parse('melodies/melody5.mxl')
 melody2 = converter.parse('melodies/melody2.mxl')
+melody4 = converter.parse('melodies/melody4.mxl')
+melody3 = converter.parse('melodies/melody3.mxl')
 
 #variation2(melody1, key.Key('F', 'major'))
 #variation5(melody1, meter.TimeSignature('4/4'))
@@ -142,4 +276,11 @@ melody2 = converter.parse('melodies/melody2.mxl')
 #variation3(melody1)
 #variation3(melody5)
 #variation7(melody2, key.Key('F', 'major'))
-variation7(melody5, key.Key('C', 'minor'))
+#variation7(melody5, key.Key('C', 'minor'))
+#variation1(melody4, key.Key('C', 'minor'))
+
+#variation8(melody4, key.Key('C', 'minor'))
+#variation8(melody2, key.Key('F', 'major'))
+#variation8(melody5, key.Key('C', 'minor'))
+#variation8(melody3, key.Key('C', 'major'))
+variation1(melody3, key.Key('C', 'major'))
